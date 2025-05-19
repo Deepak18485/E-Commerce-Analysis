@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Commerce Analytics Dashboard</title>
+  <link rel="stylesheet" href="dashboard-style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h2>E-Commerce Analytics</h2>
+      </div>
+      <ul class="nav-links">
+        <li class="active"><a href="#" data-section="overview"><i class="fas fa-chart-line"></i> Overview</a></li>
+        <li><a href="#" data-section="sales-analysis"><i class="fas fa-shopping-cart"></i> Sales Analysis</a></li>
+        <!-- i class="sidebar-footer"><a href="login.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li> -->
+      </ul>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="time-filter">
+          <div id="customDateRange" class="hidden">
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <button id="applyDateRange">Apply</button>
+          </div>
+        </div>
+        <div class="user-info">
+          <span>Welcome, Admin</span>
+          <img src="/api/placeholder/40/40" alt="User profile" class="user-avatar">
+        </div>
+      </header>
+
+      <!-- Dashboard Content Sections -->
+      <div class="dashboard-content">
+        <!-- Overview Section -->
+        <section id="overview" class="content-section active">
+          <h2>Dashboard Overview</h2>
+          
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon"><i class="fas fa-dollar-sign"></i></div>
+              <div class="metric-info">
+                <h3>Total Revenue</h3>
+                <p class="metric-value">$4539</p>
+                <p class="metric-change positive">+12.5% <span>vs last period</span></p>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-icon"><i class="fas fa-shopping-bag"></i></div>
+              <div class="metric-info">
+                <h3>Total Orders</h3>
+                <p class="metric-value" id="totalOrders">8,642</p>
+                <p class="metric-change positive">+7.2% <span>vs last period</span></p>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-icon"><i class="fas fa-users"></i></div>
+              <div class="metric-info">
+                <h3>New Customers</h3>
+                <p class="metric-value" id="newCustomers">1,245</p>
+                <p class="metric-change positive">+4.8% <span>vs last period</span></p>
+              </div>
+            </div>
+            
+            <div class="metric-card">
+              <div class="metric-icon"><i class="fas fa-shopping-cart"></i></div>
+              <div class="metric-info">
+                <h3>Avg Order Value</h3>
+                <p class="metric-value" id="avgOrderValue">$49.51</p>
+                <p class="metric-change positive">+2.3% <span>vs last period</span></p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="charts-container">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Sales Trend by Month</h3>
+                <div class="chart-controls">
+                  <canvas id="salesTrendChart" width="200" height="100"></canvas>
+                  <button class="btn-chart-control active" data-view="monthly">Monthly</button>
+                  <button class="btn-chart-control" data-view="weekly">Weekly</button>
+                  <button class="btn-chart-control" data-view="daily">Daily</button>
+                </div>
+              </div>
+              <div class="chart-body">
+                <canvas id="salesTrendsChart"></canvas>
+              </div>
+            </div>
+            
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Sales by Country</h3>
+                <div class="chart-controls">
+                  <select id="regionTypeFilter">
+                    <option value="country">Country</option>
+                    <option value="region">Region</option>
+                    <option value="city">City</option>
+                  </select>
+                </div>
+              </div>
+              <div class="chart-body">
+                <canvas id="salesByCountryChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="charts-container">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Best Selling Products</h3>
+                <div class="chart-controls">
+                  <select id="productTimeFilter">
+                    <option value="allTime">All Time</option>
+                    <option value="thisMonth">This Month</option>
+                    <option value="lastMonth">Last Month</option>
+                    <option value="custom">Custom Month</option>
+                  </select>
+                  <select id="customMonthSelector" class="hidden">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                  </select>
+                </div>
+              </div>
+              <div class="chart-body">
+                <canvas id="bestSellingProductsChart"></canvas>
+              </div>
+            </div>
+            
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Customer Acquisition</h3>
+                <div class="chart-controls">
+                  <button class="btn-chart-control active" data-view="newVsReturning">New vs Returning</button>
+                  <button class="btn-chart-control" data-view="bySource">By Source</button>
+                </div>
+              </div>
+              <div class="chart-body">
+                <canvas id="customerAcquisitionChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Sales Analysis Section -->
+        <section id="sales-analysis" class="content-section">
+          <h2>Sales Analysis</h2>
+          
+          <div class="filter-controls">
+            <div class="filter-group">
+              <label for="salesTimeRange">Time Period:</label>
+              <select id="salesTimeRange">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly" selected>Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label for="salesCategoryFilter">Category:</label>
+              <select id="salesCategoryFilter">
+                <option value="all">All Categories</option>
+                <option value="electronics">Electronics</option>
+                <option value="clothing">Clothing</option>
+                <option value="home">Home & Kitchen</option>
+                <option value="books">Books</option>
+                <option value="beauty">Beauty & Personal Care</option>
+              </select>
+            </div>
+            
+            <button id="exportSalesData" class="export-btn">
+              <i class="fas fa-download"></i> Export Data
+            </button>
+          </div>
+          
+          <div class="charts-container">
+            <div class="chart-card full-width">
+              <div class="chart-header">
+                <h3>Sales Performance Over Time</h3>
+              </div>
+              <div class="chart-body">
+                <canvas id="salesPerformanceChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="charts-container">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Sales by Product</h3>
+              </div>
+              <div class="chart-body">
+                <canvas id="salesByCategoryChart"></canvas>
+              </div>
+            </div>
+            
+            <div class="chart-card">
+              <div class="chart-header">
+                <h3>Sales by Payment Method</h3>
+              </div>
+              <div class="chart-body">
+                <canvas id="salesByPaymentChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="data-table-container">
+            <h3>Sales Breakdown</h3>
+            <table class="data-table" id="salesTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Will be populated by JavaScript -->
+              </tbody>
+            </table>
+            <div class="pagination">
+              <button id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
+              <span id="pageIndicator">Page 1 of 10</span>
+              <button id="nextPage"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </section>
+        
+        
+        
+        
+  <footer class="footer">
+    <p>&copy; 2025 E-Commerce Analytics. All rights reserved.</p>
+
+ <!-- <script>
+// Global configuration
+const API_BASE_URL = 'http://your-api-domain.com/api'; // Replace with your actual API URL
+
+// Function to fetch data from API
+async function fetchData(endpoint, params = {}) {
+  try {
+    const url = new URL(`${API_BASE_URL}${endpoint}`);
+    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return null;
+  }
+}
+
+// Function to load overview metrics
+async function loadOverviewMetrics() {
+  const data = await fetchData('/metrics', {
+    timeRange: document.getElementById('timeRangeFilter').value
+  });
+  
+  if (data) {
+    // Update the metric cards
+    document.querySelector('.metric-card:nth-child(1) .metric-value').textContent = `$${data.totalRevenue.toLocaleString()}`;
+    document.querySelector('.metric-card:nth-child(2) .metric-value').textContent = data.totalOrders.toLocaleString();
+    document.querySelector('.metric-card:nth-child(3) .metric-value').textContent = data.newCustomers.toLocaleString();
+    document.querySelector('.metric-card:nth-child(4) .metric-value').textContent = `$${data.avgOrderValue.toFixed(2)}`;
+    
+    // Update the percentage changes
+    document.querySelectorAll('.metric-change').forEach((el, index) => {
+      const change = data.changes[index];
+      el.textContent = `${change > 0 ? '+' : ''}${change}% vs last period`;
+      el.className = `metric-change ${change > 0 ? 'positive' : 'negative'}`;
+    });
+  }
+}
+
+// Function to initialize charts with API data
+async function initializeCharts() {
+  // Sales Trend Chart
+  const salesTrendData = await fetchData('/sales-trend', {
+    view: 'monthly', // Default view
+    timeRange: document.getElementById('timeRangeFilter').value
+  });
+  
+  if (salesTrendData) {
+    const ctx = document.getElementById('salesTrendsChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: salesTrendData.labels,
+        datasets: [{
+          label: 'Sales',
+          data: salesTrendData.values,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.1,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false
+          }
+        }
+      }
+    });
+  }
+  
+  // Similar implementations for other charts...
+}
+
+// Event listeners for filters
+document.getElementById('timeRangeFilter').addEventListener('change', function() {
+  loadOverviewMetrics();
+  initializeCharts();
+});
+
+// Initialize the dashboard when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  loadOverviewMetrics();
+  initializeCharts();
+});
+</script> -->
+  <script src="script.js"></script>
+</body>
+</html>
