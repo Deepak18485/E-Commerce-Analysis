@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize all charts
+  updateOverviewMetrics();
+
   initSalesTrendsChart();
   initSalesByCountryChart();
   initBestSellingProductsChart();
@@ -9,22 +11,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateOverviewMetrics() {
-  fetch('http://localhost:3000/api/metrics') 
+  fetch('/api/metrics') 
     .then(res => res.json())
     .then(data => {
+      console.log('Overview metrics data:', data);
       document.getElementById('totalRevenue').textContent = `$${Number(data.totalRevenue).toLocaleString()}`;
       document.getElementById('totalOrders').textContent = data.totalOrders.toLocaleString();
       document.getElementById('newCustomers').textContent = data.newCustomers.toLocaleString();
-      document.getElementById('avgOrderValue').textContent = `$${data.avgOrderValue.toFixed(2)}`;
+      const avgOrder = Number(data.avgOrderValue ?? 0).toFixed(2);
+      document.getElementById('avgOrderValue').textContent = `₹${avgOrder}`;
     })
     .catch(err => console.error('Error loading metrics:', err));
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  updateOverviewMetrics();
-});
-
-
 
 
 // 1. Sales Trend by Month Chart
@@ -35,7 +33,12 @@ function initSalesTrendsChart() {
   fetch('/api/sales-trends')
     .then(res => res.json())
     .then(data => {
-      const labels = data.map(d => d.month);
+      // Convert '2025-01' into 'Jan', 'Feb', etc.
+      const labels = data.map(d => {
+        const [year, month] = d.month.split('-');
+        return new Date(year, month - 1).toLocaleString('default', { month: 'short' });
+      });
+
       const values = data.map(d => d.total_sales);
 
       new Chart(ctx, {
@@ -43,19 +46,27 @@ function initSalesTrendsChart() {
         data: {
           labels,
           datasets: [{
-            label: 'Monthly Sales',
+            label: 'Sales Revenue ($)',
             data: values,
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
+            fill: true, // Fill under the line
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            pointBackgroundColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 2,
-            tension: 0.3
+            tension: 0.4 // Smooth curves
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'top' },
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true
+              }
+            },
             tooltip: {
               callbacks: {
                 label: function(context) {
@@ -71,6 +82,14 @@ function initSalesTrendsChart() {
                 callback: function(value) {
                   return '$' + value.toLocaleString();
                 }
+              },
+              grid: {
+                color: '#e5e5e5'
+              }
+            },
+            x: {
+              grid: {
+                display: false
               }
             }
           }
@@ -79,6 +98,7 @@ function initSalesTrendsChart() {
     })
     .catch(err => console.error('Error loading sales trends:', err));
 }
+
 
 // 2. Sales by Country Chart
 function initSalesByCountryChart() {

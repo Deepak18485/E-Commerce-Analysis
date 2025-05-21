@@ -52,8 +52,7 @@
               <div class="metric-icon"><i class="fas fa-dollar-sign"></i></div>
               <div class="metric-info">
                 <h3>Total Revenue</h3>
-                <p class="metric-value">$4539</p>
-                <p class="metric-change positive">+12.5% <span>vs last period</span></p>
+                <p class="metric-value" id="totalRevenue">Loading...</p>
               </div>
             </div>
             
@@ -61,17 +60,15 @@
               <div class="metric-icon"><i class="fas fa-shopping-bag"></i></div>
               <div class="metric-info">
                 <h3>Total Orders</h3>
-                <p class="metric-value" id="totalOrders">8,642</p>
-                <p class="metric-change positive">+7.2% <span>vs last period</span></p>
+                <p class="metric-value" id="totalOrders">Loading...</p>
               </div>
             </div>
             
             <div class="metric-card">
               <div class="metric-icon"><i class="fas fa-users"></i></div>
               <div class="metric-info">
-                <h3>New Customers</h3>
-                <p class="metric-value" id="newCustomers">1,245</p>
-                <p class="metric-change positive">+4.8% <span>vs last period</span></p>
+                <h3>Total Customers</h3>
+                <p class="metric-value" id="newCustomers">Loading...</p>
               </div>
             </div>
             
@@ -79,8 +76,7 @@
               <div class="metric-icon"><i class="fas fa-shopping-cart"></i></div>
               <div class="metric-info">
                 <h3>Avg Order Value</h3>
-                <p class="metric-value" id="avgOrderValue">$49.51</p>
-                <p class="metric-change positive">+2.3% <span>vs last period</span></p>
+                <p class="metric-value" id="avgOrderValue">Loading...</p>
               </div>
             </div>
           </div>
@@ -221,7 +217,7 @@
             
             <div class="chart-card">
               <div class="chart-header">
-                <h3>Sales by Payment Method</h3>
+                <h3>Price Distribution</h3>
               </div>
               <div class="chart-body">
                 <canvas id="salesByPaymentChart"></canvas>
@@ -230,7 +226,7 @@
           </div>
           
           <div class="data-table-container">
-            <h3>Sales Breakdown</h3>
+            <h3>Recent Transactions</h3>
             <table class="data-table" id="salesTable">
               <thead>
                 <tr>

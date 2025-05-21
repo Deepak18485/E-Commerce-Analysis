@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 
-const app = express(); // Make sure this comes BEFORE using `app`
+const app = express(); 
 
 // Middleware
 app.use(cors());
@@ -51,7 +51,7 @@ app.get('/api/sales-trends', (req, res) => {
     GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
     ORDER BY month;
   `;
-  
+
   connection.query(query, (err, results) => {
     if (err) {
       console.error(err);
@@ -60,6 +60,7 @@ app.get('/api/sales-trends', (req, res) => {
     res.json(results);
   });
 });
+
 
 // 2. Sales by Country
 app.get('/api/sales-by-country', (req, res) => {
@@ -141,18 +142,22 @@ app.get('/api/sales-by-product', (req, res) => {
 // Overview Metrics
 app.get('/api/metrics', (req, res) => {
   const query = `
-    SELECT 
+     SELECT 
       SUM(price * quantity) AS totalRevenue,
-      COUNT(DISTINCT order_id) AS totalOrders,
+      COUNT(*) AS totalOrders,
       COUNT(DISTINCT customer_id) AS newCustomers,
-      AVG(price * quantity) AS avgOrderValue
+      IFNULL(AVG(price * quantity), 0) AS avgOrderValue
     FROM transactions;
   `;
+
   connection.query(query, (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
+    if (err) {
+      console.error("SQL Error:", err);  // Add this for debugging
+      return res.status(500).json({ error: 'Database error' });
+    }
     res.json(results[0]);
   });
-});
+})
 
 
 // Start the server
