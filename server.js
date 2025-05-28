@@ -1,159 +1,102 @@
-// const express = require('express');
-// const mysql = require('mysql2');
-// const path = require('path');
+const express = require('express');
+const fetch = require('node-fetch');
+const path = require('path');
+const app = express();
 
-// const app = express(); 
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
-// app.use(express.static(path.join(__dirname, 'public')));
+// API routes
+const overviewRoute = require('./routes/overview');
+const salesTrendsRoute = require('./routes/salesTrends');
+const salesByCategoryRoute = require('./routes/salesByCategory');
 
-
-// // MySQL connection
-// const connection = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'Ecommerce@1',
-//   database: 'ecommerce_db'
-// });
-
-// connection.connect(err => {
-//   if (err) {
-//     console.error('Error connecting to database:', err);
-//     return;
-//   }
-//   console.log('Connected to MySQL database');
-// });
+app.use('/api/overview', overviewRoute);
+app.use('/api/sales-trends', salesTrendsRoute);
+app.use('/api/sales-by-category', salesByCategoryRoute);
 
 
+app.get('/api/top-products', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/top-products');
+    
+    // Check content type first
+    const contentType = response.headers.get('content-type');
+    if (!contentType.includes('application/json')) {
+      throw new Error('Invalid response format');
+    }
 
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Proxy error:', error.message);
+    res.status(502).json({ 
+      error: 'Failed to fetch top products',
+      details: error.message
+    });
+  }
+});
 
-// // Serve dashboard.html at root URL
-// app.get('/', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-// });
+app.get('/api/customer-acquisition', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/customer-acquisition');
+    
+    // Check if response is OK first
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Flask error: ${response.status} - ${errorText}`);
+    }
+    
+    // Then check content type
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(`Invalid content-type: ${contentType}. Response: ${text.slice(0, 100)}`);
+    }
 
-// // API Endpoints for Dashboard
+    const data = await response.json();
+    res.json(data);
+    
+  } catch (error) {
+    console.error('Customer acquisition proxy error:', error.message);
+    res.status(502).json({ 
+      error: 'Failed to fetch customer data',
+      details: error.message
+    });
+  }
+});
 
-// // 1. Sales Trend by Month
-// app.get('/api/sales-trends', (req, res) => {
-//   const query = `
-//     SELECT 
-//       DATE_FORMAT(transaction_date, '%Y-%m') AS month,
-//       SUM(price * quantity) AS total_sales
-//     FROM transactions
-//     GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
-//     ORDER BY month;
-//   `;
+// Modify the proxy route to handle HTML errors
+app.get('/api/monthly-top-products', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/monthly-top-products');
+    
+    // First check if response is HTML
+    const contentType = response.headers.get('content-type');
+    if (contentType.includes('text/html')) {
+      const html = await response.text();
+      throw new Error(`Received HTML: ${html.slice(0, 100)}`);
+    }
+    
+    // Then process as JSON
+    const data = await response.json();
+    res.json(data);
+    
+  } catch (error) {
+    console.error('Proxy error:', error.message);
+    res.status(502).json({ 
+      error: 'Failed to fetch top products',
+      details: error.message
+    });
+  }
+});
 
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).json({ error: "Database error" });
-//     }
-//     res.json(results);
-//   });
-// });
+// Default route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
 
-
-// // 2. Sales by Country
-// app.get('/api/sales-by-country', (req, res) => {
-//   const query = `
-//     SELECT 
-//       country, 
-//       SUM(price * quantity) AS total_sales
-//     FROM transactions
-//     GROUP BY country
-//     ORDER BY total_sales DESC
-//     LIMIT 10;
-//   `;
-  
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).json({ error: "Database error" });
-//     }
-//     res.json(results);
-//   });
-// });
-
-// // 3. Best Selling Products
-// app.get('/api/best-selling-products', (req, res) => {
-//   const query = `
-//     SELECT 
-//       product_name, 
-//       SUM(quantity) AS total_quantity,
-//       SUM(price * quantity) AS total_revenue
-//     FROM transactions
-//     GROUP BY product_name
-//     ORDER BY total_quantity DESC
-//     LIMIT 10;
-//   `;
-  
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).json({ error: "Database error" });
-//     }
-//     res.json(results);
-//   });
-// });
-
-// // Sales Performance Over Time
-// app.get('/api/sales-performance', (req, res) => {
-//   const query = `
-//     SELECT 
-//       DATE_FORMAT(transaction_date, '%Y-%m') AS month,
-//       SUM(price * quantity) AS total_revenue,
-//       SUM(quantity) AS total_quantity
-//     FROM transactions
-//     GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
-//     ORDER BY month;
-//   `;
-//   connection.query(query, (err, results) => {
-//     if (err) return res.status(500).json({ error: 'Database error' });
-//     res.json(results);
-//   });
-// });
-
-// // Sales by Product Name 
-// app.get('/api/sales-by-product', (req, res) => {
-//   const query = `
-//     SELECT 
-//       product_name, 
-//       SUM(price * quantity) AS total_sales
-//     FROM transactions
-//     GROUP BY product_name
-//     ORDER BY total_sales DESC;
-//   `;
-//   connection.query(query, (err, results) => {
-//     if (err) return res.status(500).json({ error: 'Database error' });
-//     res.json(results);
-//   });
-// });
-
-
-// // Overview Metrics
-// app.get('/api/metrics', (req, res) => {
-//   const query = `
-//      SELECT 
-//       SUM(price * quantity) AS totalRevenue,
-//       COUNT(*) AS totalOrders,
-//       COUNT(DISTINCT customer_id) AS newCustomers,
-//       IFNULL(AVG(price * quantity), 0) AS avgOrderValue
-//     FROM transactions;
-//   `;
-
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error("SQL Error:", err);  // Add this for debugging
-//       return res.status(500).json({ error: 'Database error' });
-//     }
-//     res.json(results[0]);
-//   });
-// })
-
-
-// // Start the server
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//   console.log(`🌍 Server running on http://localhost:${PORT}`);
-// });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});

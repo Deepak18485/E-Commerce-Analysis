@@ -80,37 +80,31 @@
           </div>
           
           <div class="charts-container">
-            <div class="chart-card">
-              <div class="chart-header">
-                <h3>Sales Trend by Month</h3>
-                <div class="chart-controls">
-                  <canvas id="salesTrendChart" width="200" height="100"></canvas>
-                  <button class="btn-chart-control active" data-view="monthly">Monthly</button>
-                  <button class="btn-chart-control" data-view="weekly">Weekly</button>
-                  <button class="btn-chart-control" data-view="daily">Daily</button>
-                </div>
-              </div>
-              <div class="chart-body">
-                <canvas id="salesTrendsChart"></canvas>
-              </div>
-            </div>
+  <!-- Full-width chart container -->
+  <div class="chart-card full-width">
+    <div class="chart-header">
+      <h3>Sales Trend by Month</h3>
+      <div class="chart-controls">
+        <button class="btn-chart-control active" data-view="monthly">Monthly</button>
+        <button class="btn-chart-control" data-view="weekly">Weekly</button>
+        <button class="btn-chart-control" data-view="daily">Daily</button>
+      </div>
+    </div>
+    <div class="chart-body" style="position: relative; height: 60vh; width:100%">
+      <canvas id="salesTrendsChart"></canvas>
+    </div>
+  </div>
+</div>
+
             
-            <div class="chart-card">
-              <div class="chart-header">
-                <h3>Sales by Country</h3>
-                <div class="chart-controls">
-                  <select id="regionTypeFilter">
-                    <option value="country">Country</option>
-                    <option value="region">Region</option>
-                    <option value="city">City</option>
-                  </select>
-                </div>
-              </div>
-              <div class="chart-body">
-                <canvas id="salesByCountryChart"></canvas>
-              </div>
-            </div>
-          </div>
+<div class="chart-card full-width">
+  <div class="chart-header">
+    <h3>Monthly Top Selling Categories</h3>
+  </div>
+  <div class="chart-body" style="position: relative; height: 60vh; width: 100%">
+    <canvas id="seasonalityChart"></canvas>
+  </div>
+</div>
           
           <div class="charts-container">
             <div class="chart-card">
@@ -145,17 +139,19 @@
             </div>
             
             <div class="chart-card">
-              <div class="chart-header">
-                <h3>Customer Acquisition</h3>
-                <div class="chart-controls">
-                  <button class="btn-chart-control" data-view="bySource">By Source</button>
-                </div>
-              </div>
-              <div class="chart-body">
-                <canvas id="customerAcquisitionChart"></canvas>
-              </div>
-            </div>
-          </div>
+  <div class="chart-header">
+    <h3>Customer Acquisition</h3>
+    <div class="chart-controls">
+      <select id="acquisitionTimeFilter">
+        <option value="monthly">Monthly</option>
+        <option value="quarterly">Quarterly</option>
+      </select>
+    </div>
+  </div>
+  <div class="chart-body">
+    <canvas id="customerAcquisitionChart"></canvas>
+  </div>
+</div>
         </section>
         
         <!-- Sales Analysis Section -->
@@ -252,6 +248,10 @@
         
   <footer class="footer">
     <p>&copy; 2025 E-Commerce Analytics. All rights reserved.</p>
-  <!-- <script src="script.js"></script> -->
+    </footer>
+
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/script.js"></script>
+
 </body>
 </html>
