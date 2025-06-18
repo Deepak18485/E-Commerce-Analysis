@@ -91,10 +91,81 @@ app.get('/api/monthly-top-products', async (req, res) => {
   }
 });
 
-// Default route
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+// Add this route
+app.get('/api/demand-prediction', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/demand-prediction');
+    if (!response.ok) throw new Error(`Backend error: ${response.status}`);
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Demand prediction error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
+
+
+
+app.get('/api/payment-method-analysis', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/payment-method-analysis');
+    
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const html = await response.text();
+      throw new Error(`Invalid response format: ${html.slice(0, 100)}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Payment method analysis error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/return-analysis', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/return-analysis');
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Flask Error ${response.status}: ${text}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType.includes('application/json')) {
+      const html = await response.text();
+      throw new Error(`Unexpected response format: ${html.slice(0, 100)}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Return analysis proxy error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+app.get('/api/first-purchase-analysis', async (req, res) => {
+  try {
+    const response = await fetch('http://localhost:5001/api/first-purchase-analysis');
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Flask Error ${response.status}: ${text}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('First purchase analysis proxy error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

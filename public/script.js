@@ -3,9 +3,10 @@ document.addEventListener("DOMContentLoaded", function() {
   loadOverviewMetrics();
   loadSalesTrends();
   loadSalesByCategory();
-  loadTopProducts();
+  // loadTopProducts();
   loadCustomerAcquisition();
    loadMonthlyTopProducts();
+  //  loadDemandPredictions();
   //  createCategoryLegend();
   //  createTopProductsChart();
 });
@@ -174,53 +175,53 @@ function loadSalesTrends() {
     .catch(err => console.error('Error loading sales trends data:', err));
 }
 
-function loadTopProducts() {
-  fetch('/api/top-products')
-    .then(res => res.json())
-    .then(data => {
-      const labels = data.map(d => d.category);
-      const values = data.map(d => d.total_sales);
+// function loadTopProducts() {
+//   fetch('/api/top-products')
+//     .then(res => res.json())
+//     .then(data => {
+//       const labels = data.map(d => d.category);
+//       const values = data.map(d => d.total_sales);
 
-      new Chart(document.getElementById('topProductsChart'), {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Sales Revenue ($)',
-            data: values,
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: ctx => `$${ctx.raw.toLocaleString()}`
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: {
-                callback: v => '$' + v.toLocaleString()
-              }
-            },
-            y: {
-              ticks: {
-                autoSkip: false
-              }
-            }
-          }
-        }
-      });
-    })
-    .catch(err => console.error('Error loading top products:', err));
-}
+//       new Chart(document.getElementById('topProductsChart'), {
+//         type: 'bar',
+//         data: {
+//           labels: labels,
+//           datasets: [{
+//             label: 'Sales Revenue ($)',
+//             data: values,
+//             backgroundColor: 'rgba(54, 162, 235, 0.6)',
+//             borderColor: 'rgba(54, 162, 235, 1)',
+//             borderWidth: 1
+//           }]
+//         },
+//         options: {
+//           indexAxis: 'y',
+//           responsive: true,
+//           plugins: {
+//             legend: { display: false },
+//             tooltip: {
+//               callbacks: {
+//                 label: ctx => `$${ctx.raw.toLocaleString()}`
+//               }
+//             }
+//           },
+//           scales: {
+//             x: {
+//               ticks: {
+//                 callback: v => '$' + v.toLocaleString()
+//               }
+//             },
+//             y: {
+//               ticks: {
+//                 autoSkip: false
+//               }
+//             }
+//           }
+//         }
+//       });
+//     })
+//     .catch(err => console.error('Error loading top products:', err));
+// }
 
 function loadSalesByCategory() {
   fetch('/api/sales-by-category')
@@ -286,30 +287,38 @@ function getRandomColor(alpha = 1) {
 let seasonalityChart = null;
 
 function createTopProductsChart(data) {
-  // 1. Get canvas element properly
   const ctx = document.getElementById('seasonalityChart');
   if (!ctx) {
     console.error('Chart canvas element not found!');
     return;
   }
 
-  // 2. Destroy existing chart safely
   if (seasonalityChart) {
     seasonalityChart.destroy();
   }
 
-  // 3. Create new chart
+  const labels = data.map(d => {
+    const [year, month] = d.month.split('-');
+    return `${new Date(year, month - 1).toLocaleString('default', { month: 'short' })} ${year}`;
+  });
+
+  const values = data.map(d => d.total_sales);
+
+  // ✅ Dynamically generate legend info
+  const categories = [...new Set(data.map(d => d.top_category))];
+  const categoryColors = {};
+  categories.forEach(cat => {
+    categoryColors[cat] = getRandomColor(0.6);
+  });
+
   seasonalityChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.map(d => {
-        const [year, month] = d.month.split('-');
-        return `${new Date(year, month-1).toLocaleString('default', { month: 'short' })} ${year}`;
-      }),
+      labels,
       datasets: [{
         label: 'Top Category Sales ($)',
-        data: data.map(d => d.total_sales),
-        backgroundColor: data.map(() => getRandomColor(0.6)),
+        data: values,
+        backgroundColor: data.map(d => categoryColors[d.top_category]),
         borderColor: '#ffffff',
         borderWidth: 1
       }]
@@ -343,25 +352,346 @@ function createTopProductsChart(data) {
     }
   });
 
-    // Add custom legend
-  createCategoryLegend(uniqueCategories, categoryColors);
-
+  // ✅ Now call legend function with valid variables
+  createCategoryLegend(categories, categoryColors);
 }
-
-
 
 
 function createCategoryLegend(categories, colors) {
   const legendContainer = document.getElementById('seasonalityLegend');
   legendContainer.innerHTML = categories.map(cat => `
     <div class="legend-item">
-      <span class="legend-color" style="background-color: ${colors[cat]}"></span>
-      ${cat}
+    <span class="legend-color" style="background-color: ${colors[cat]}"></span>
+    ${cat}
     </div>
-  `).join('');
+    `).join('');
+  }
+
+  let predictionChart = null;
+
+
+async function loadDemandPredictions() {
+  try {
+    const response = await fetch('/api/demand-prediction');
+    if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+    
+    const data = await response.json();
+    renderDemandChart(data);
+  } catch (error) {
+    console.error('Error loading predictions:', error);
+    document.getElementById('demandPredictionChart').innerHTML = 
+      `<div class="chart-error">${error.message}</div>`;
+  }
+}
+
+function renderDemandChart(data) {
+  const ctx = document.getElementById('demandPredictionChart');
+  if (!ctx) {
+    console.error('Canvas element not found!');
+    return;
+  }
+  if (predictionChart) predictionChart.destroy();
+
+  const validData = data.filter(d => d.actual_sales !== null && d.predicted_sales !== null);
+
+  // ✅ Extract unique categories
+  const categories = [...new Set(validData.map(d => d.category))];
+  const selectedCategory = document.getElementById("predictionCategory").value;
+
+  const filteredData = selectedCategory === "all"
+    ? validData
+    : validData.filter(d => d.category === selectedCategory);
+
+  // ✅ Group by month
+  const monthlyData = {};
+  filteredData.forEach(d => {
+    if (!monthlyData[d.month]) {
+      monthlyData[d.month] = { actual: 0, predicted: 0 };
+    }
+    monthlyData[d.month].actual += d.actual_sales;
+    monthlyData[d.month].predicted += d.predicted_sales;
+  });
+
+  const months = Object.keys(monthlyData).sort();
+  const actualSales = months.map(m => monthlyData[m].actual);
+  const predictedSales = months.map(m => monthlyData[m].predicted);
+
+  const datasets = [
+    {
+      label: 'Actual Sales',
+      data: actualSales,
+      borderColor: '#4CAF50',
+      backgroundColor: 'rgba(76, 175, 80, 0.1)',
+      borderWidth: 2,
+      fill: true
+    },
+    {
+      label: 'Predicted Sales',
+      data: predictedSales,
+      borderColor: '#FF9800',
+      backgroundColor: 'rgba(255, 152, 0, 0.1)',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      fill: true
+    }
+  ];
+
+  predictionChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months.map(m => {
+        const [year, month] = m.split('-');
+        return `${new Date(year, month - 1).toLocaleString('default', { month: 'short' })} ${year}`;
+      }),
+      datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: $${ctx.raw.toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Sales ($)' },
+          ticks: { callback: v => `$${v.toLocaleString()}` }
+        },
+        x: {
+          title: { display: true, text: 'Month' },
+          ticks: { maxRotation: 45, minRotation: 45 }
+        }
+      }
+    }
+  });
+
+  // Populate dropdown if "all" is selected
+  const dropdown = document.getElementById("predictionCategory");
+  if (dropdown && dropdown.value === "all") {
+    dropdown.innerHTML = `<option value="all">All Categories</option>` +
+      categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+  }
+}
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    loadDemandPredictions();
+
+    document.getElementById('refreshPredictions').addEventListener('click', () => {
+      loadDemandPredictions();
+    });
+  });
+
+function loadPaymentMethodAnalysis() {
+  fetch('/api/payment-method-analysis')
+    .then(res => res.json())
+    .then(data => {
+      const grouped = {};
+
+      data.forEach(row => {
+        if (!grouped[row.payment_method]) grouped[row.payment_method] = { Yes: 0, No: 0 };
+        if (row.churn === "Yes") grouped[row.payment_method].Yes += row.count;
+        else grouped[row.payment_method].No += row.count;
+      });
+
+      const paymentMethods = Object.keys(grouped);
+      const churnYes = paymentMethods.map(pm => grouped[pm].Yes);
+      const churnNo = paymentMethods.map(pm => grouped[pm].No);
+
+      const ctx = document.getElementById('paymentMethodChart');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: paymentMethods,
+          datasets: [
+            {
+              label: 'Active Customers',
+              data: churnNo,
+              backgroundColor: 'rgba(75, 192, 192, 0.6)'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Payment Method Preferences by Customer'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            },
+            legend: { position: 'top' }
+          },
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error('Error loading payment method data:', err);
+      document.getElementById('paymentMethodChart').innerHTML =
+        `<div class="chart-error">${err.message}</div>`;
+    });
+}
+
+// Call it on DOM load
+document.addEventListener("DOMContentLoaded", function () {
+  loadPaymentMethodAnalysis();
+});
+
+function loadReturnAnalysis() {
+  fetch('/api/return-analysis')
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const ctx = document.getElementById('returnAnalysisChart');
+      if (!ctx) return;
+
+      const labels = data.map(d => d.category);
+      const returnRates = data.map(d => d.return_rate);
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Return Rate (%)',
+            data: returnRates,
+            backgroundColor: labels.map((_, i) => `hsl(${i * 36}, 70%, 60%)`)
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.raw.toFixed(2)}%`
+              }
+            },
+            title: {
+              display: true,
+              text: 'Return Rate by Product Category'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Return Rate (%)'
+              },
+              ticks: {
+                callback: val => `${val}%`
+              }
+            },
+            x: {
+              ticks: {
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error('Error loading return analysis:', err);
+      const container = document.getElementById('returnAnalysisChart');
+      if (container) container.innerHTML = `<div class="chart-error">${err.message}</div>`;
+    });
 }
 
 
+function loadFirstPurchaseAnalysis() {
+  fetch('/api/first-purchase-analysis')
+    .then(res => res.json())
+    .then(data => {
+      const ctx = document.getElementById('firstPurchaseChart');
+      if (!ctx) return;
+
+      // Group counts by category and churn
+      const grouped = {};
+      data.forEach(row => {
+        if (!grouped[row.category]) grouped[row.category] = { loyal: 0, churned: 0 };
+        if (row.churn === 0) grouped[row.category].loyal += row.count;
+        else grouped[row.category].churned += row.count;
+      });
+
+      const categories = Object.keys(grouped);
+      const loyalCounts = categories.map(c => grouped[c].loyal);
+      const churnedCounts = categories.map(c => grouped[c].churned);
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: categories,
+          datasets: [
+            {
+              label: 'Loyal Customers (Churn=0)',
+              data: loyalCounts,
+              backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            },
+            {
+              label: 'Churned Customers (Churn=1)',
+              data: churnedCounts,
+              backgroundColor: 'rgba(255, 99, 132, 0.6)'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'First Purchase Category vs Loyalty'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            },
+            legend: { position: 'top' }
+          },
+          scales: {
+            x: {
+              stacked: true
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              title: { display: true, text: 'Number of Customers' }
+            }
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error('Error loading first purchase analysis:', err);
+      const container = document.getElementById('firstPurchaseChart');
+      if (container) container.innerHTML = `<div class="chart-error">${err.message}</div>`;
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadFirstPurchaseAnalysis();
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadReturnAnalysis();
+});
 
 
 

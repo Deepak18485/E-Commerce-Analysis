@@ -7,6 +7,8 @@ import threading
 from pyspark.sql import Window
 from pyspark.sql.functions import rank
 from pyspark.sql import functions as F
+from pyspark.sql.functions import collect_set
+from itertools import combinations
 
 # Initialize Spark
 spark = SparkSession.builder \
@@ -106,7 +108,112 @@ def get_monthly_top_products():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+    # Add these imports at the top
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.feature import VectorAssembler
+
+@app.route("/api/demand-prediction")
+def get_demand_prediction():
+    try:
+        # Simplified moving average prediction
+        window_spec = Window.partitionBy("category").orderBy("month")
+        
+        result = df.groupBy("category", "month") \
+                  .agg(sum("total_amount").alias("total_sales")) \
+                  .withColumn("predicted_sales", 
+                             avg("total_sales").over(window_spec.rowsBetween(-3, -1))) \
+                  .filter(col("month") >= "2023-01") \
+                  .collect()
+        
+        return jsonify([{
+            "category": row.category,
+            "month": row.month,
+            "actual_sales": row.total_sales,
+            "predicted_sales": row.predicted_sales or 0
+        } for row in result])
     
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/payment-method-analysis")
+def get_payment_method_analysis():
+    try:
+        result = df.groupBy("payment_method", "churn") \
+                   .agg(F.count("*").alias("count")) \
+                   .orderBy("payment_method", "churn") \
+                   .collect()
+
+        return jsonify([{
+            "payment_method": row["payment_method"],
+            "churn": row["churn"],
+            "count": row["count"]
+        } for row in result])
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/return-analysis")
+def get_return_analysis():
+    try:
+        total_counts = df.groupBy("category").agg(F.count("*").alias("total_orders"))
+
+        # FIX: Use churn == 1 instead of string comparison
+        returned_counts = df.filter(F.col("Churn") == 1) \
+                            .groupBy("category").agg(F.count("*").alias("returned_orders"))
+
+        joined = total_counts.join(returned_counts, on="category", how="left").fillna(0)
+
+        result = joined.withColumn(
+            "return_rate", 
+            (F.col("returned_orders") / F.col("total_orders")) * 100
+        ).orderBy(F.col("return_rate").desc()).collect()
+
+        return jsonify([{
+            "category": row["category"],
+            "total_orders": row["total_orders"],
+            "returned_orders": row["returned_orders"],
+            "return_rate": round(row["return_rate"], 2)
+        } for row in result])
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/first-purchase-analysis")
+def get_first_purchase_analysis():
+    try:
+        from pyspark.sql.window import Window
+        from pyspark.sql.functions import row_number
+
+        # Use correct column names (already renamed during df.select)
+        window_spec = Window.partitionBy("customer_id").orderBy("purchase_date")
+
+        df_with_rank = df.withColumn("rank", row_number().over(window_spec))
+        first_purchases = df_with_rank.filter(F.col("rank") == 1)
+
+        result = (first_purchases.groupBy("category", "churn")
+                  .agg(F.count("*").alias("count"))
+                  .orderBy("category", "churn")
+                  .collect())
+
+        response = [{
+            "category": row["category"],
+            "churn": row["churn"],
+            "count": row["count"]
+        } for row in result]
+
+        return jsonify(response)
+
+    except Exception as e:
+        import traceback
+        print("Error in /api/first-purchase-analysis:\n", traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 @app.route("/api/sales-by-category")
 def get_sales_by_category():
