@@ -15,28 +15,6 @@ app.use('/api/overview', overviewRoute);
 app.use('/api/sales-trends', salesTrendsRoute);
 app.use('/api/sales-by-category', salesByCategoryRoute);
 
-
-app.get('/api/top-products', async (req, res) => {
-  try {
-    const response = await fetch('http://localhost:5001/api/top-products');
-    
-    // Check content type first
-    const contentType = response.headers.get('content-type');
-    if (!contentType.includes('application/json')) {
-      throw new Error('Invalid response format');
-    }
-
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    console.error('Proxy error:', error.message);
-    res.status(502).json({ 
-      error: 'Failed to fetch top products',
-      details: error.message
-    });
-  }
-});
-
 app.get('/api/customer-acquisition', async (req, res) => {
   try {
     const response = await fetch('http://localhost:5001/api/customer-acquisition');

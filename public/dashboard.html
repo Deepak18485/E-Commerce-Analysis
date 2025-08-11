@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
   <div class="dashboard-container">
     <!-- Sidebar Navigation -->
@@ -35,7 +37,9 @@
         </div>
         <div class="user-info">
           <span>Welcome, Admin</span>
-          <img src="https://via.placeholder.com/40" alt="User profile" class="user-avatar">
+          <img
+            src="https://img.freepik.com/premium-vector/user-profile-icon-flat-style-member-avatar-vector-illustration-isolated-background-human-permission-sign-business-concept_157943-15752.jpg?semt=ais_hybrid&w=740"
+            alt="User profile" class="user-avatar">
 
         </div>
       </header>
@@ -45,7 +49,7 @@
         <!-- Overview Section -->
         <section id="overview" class="content-section active">
           <h2>Dashboard Overview</h2>
-          
+
           <div class="metrics-grid">
             <div class="metric-card">
               <div class="metric-icon"><i class="fas fa-dollar-sign"></i></div>
@@ -54,7 +58,7 @@
                 <p class="metric-value" id="totalRevenue">Loading...</p>
               </div>
             </div>
-            
+
             <div class="metric-card">
               <div class="metric-icon"><i class="fas fa-shopping-bag"></i></div>
               <div class="metric-info">
@@ -62,7 +66,7 @@
                 <p class="metric-value" id="totalOrders">Loading...</p>
               </div>
             </div>
-            
+
             <div class="metric-card">
               <div class="metric-icon"><i class="fas fa-users"></i></div>
               <div class="metric-info">
@@ -70,7 +74,7 @@
                 <p class="metric-value" id="newCustomers">Loading...</p>
               </div>
             </div>
-            
+
             <div class="metric-card">
               <div class="metric-icon"><i class="fas fa-shopping-cart"></i></div>
               <div class="metric-info">
@@ -79,135 +83,105 @@
               </div>
             </div>
           </div>
-          
-          <div class="charts-container">
-  <!-- Full-width chart container -->
-  <div class="chart-card full-width">
-    <div class="chart-header">
-      <h3>Sales Trend by Month</h3>
-      <div class="chart-controls">
-        <button class="btn-chart-control active" data-view="monthly">Monthly</button>
-        <button class="btn-chart-control" data-view="weekly">Weekly</button>
-        <button class="btn-chart-control" data-view="daily">Daily</button>
-      </div>
-    </div>
-    <div class="chart-body" style="position: relative; height: 60vh; width:100%">
-      <canvas id="salesTrendsChart"></canvas>
-    </div>
-  </div>
-</div>
 
-            
-<div class="chart-card full-width">
-  <div class="chart-header">
-    <h3>Monthly Top Selling Categories</h3>
-  </div>
-  <div class="chart-body" style="position: relative; height: 60vh; width: 100%">
-    <canvas id="seasonalityChart"></canvas>
-  </div>
-</div>
-          
+          <div class="charts-container">
+            <!-- Full-width chart container -->
+            <div class="chart-card full-width">
+              <div class="chart-header">
+                <h3>Sales Trend by Month</h3>
+                <div class="chart-controls">
+                  <button class="btn-chart-control active" data-view="monthly">Monthly</button>
+                </div>
+              </div>
+              <div class="chart-body" style="position: relative; height: 60vh; width:100%">
+                <canvas id="salesTrendsChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="chart-card full-width">
+            <div class="chart-header">
+              <h3>Monthly Top Selling Categories</h3>
+            </div>
+            <div class="chart-body" style="position: relative; height: 60vh; width: 100%">
+              <canvas id="seasonalityChart"></canvas>
+            </div>
+          </div>
+
           <!-- Add to Sales Analysis section -->
-<div class="chart-card full-width">
-  <div class="chart-header">
-    <h3>Demand Prediction</h3>
-    <div class="chart-controls">
-      <select id="predictionCategory">
-        <option value="all">All Categories</option>
-      </select>
-      <button id="refreshPredictions" class="btn-chart-control">
-        <i class="fas fa-sync-alt"></i> Refresh
-      </button>
-    </div>
-  </div>
-  <div class="chart-body">
-    <canvas id="demandPredictionChart"></canvas>
-  </div>
-</div>
-            
-            <div class="chart-card">
-  <div class="chart-header">
-    <h3>Customer Acquisition</h3>
-    <div class="chart-controls">
-      <select id="acquisitionTimeFilter">
-        <option value="monthly">Monthly</option>
-        <option value="quarterly">Quarterly</option>
-      </select>
-    </div>
-  </div>
-  <div class="chart-body">
-    <canvas id="customerAcquisitionChart"></canvas>
-  </div>
-</div>
+          <div class="chart-card full-width">
+            <div class="chart-header">
+              <h3>Demand Prediction</h3>
+              <div class="chart-controls">
+                <select id="predictionCategory">
+                  <option value="all">All Categories</option>
+                </select>
+                <button id="refreshPredictions" class="btn-chart-control">
+                  <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+              </div>
+            </div>
+            <div class="chart-body">
+              <canvas id="demandPredictionChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Customer Acquisition</h3>
+              <div class="chart-controls">
+                <select id="acquisitionTimeFilter">
+                  <span value="monthly">Monthly</span>
+                </select>
+              </div>
+            </div>
+            <div class="chart-body">
+              <canvas id="customerAcquisitionChart"></canvas>
+            </div>
+          </div>
         </section>
-        
+
         <!-- Sales Analysis Section -->
         <section id="sales-analysis" class="content-section">
           <h2>Sales Analysis</h2>
-          
-          <div class="filter-controls">
-            <div class="filter-group">
-              <label for="salesTimeRange">Time Period:</label>
-              <select id="salesTimeRange">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly" selected>Monthly</option>
-                <option value="quarterly">Quarterly</option>
-                <option value="yearly">Yearly</option>
-              </select>
+
+
+          <div class="chart-card full-width">
+            <div class="chart-header">
+              <h3>Payment Method Preferences vs Customer</h3>
             </div>
-            
-            <div class="filter-group">
-              <label for="salesCategoryFilter">Category:</label>
-              <select id="salesCategoryFilter">
-                <option value="all">All Categories</option>
-                <option value="electronics">Electronics</option>
-                <option value="clothing">Clothing</option>
-                <option value="home">Home & Kitchen</option>
-                <option value="books">Books</option>
-                <option value="beauty">Beauty & Personal Care</option>
-              </select>
+            <div class="chart-body">
+              <canvas id="paymentMethodChart"></canvas>
             </div>
-            
-            <button id="exportSalesData" class="export-btn">
-              <i class="fas fa-download"></i> Export Data
-            </button>
           </div>
-          
-          <div class="chart-card full-width">
-  <div class="chart-header">
-    <h3>Payment Method Preferences vs Customer</h3>
-  </div>
-  <div class="chart-body">
-    <canvas id="paymentMethodChart"></canvas>
-  </div>
-</div>
-          
-          <div class="chart-card full-width">
-  <div class="chart-header">
-    <h3>Return Analysis: Products with high return rates</h3>
-  </div>
-  <div class="chart-body">
-    <canvas id="returnAnalysisChart"></canvas>
-  </div>
-</div>
 
-            
-<div class="chart-card full-width">
-  <div class="chart-header">
-    <h3>First Purchase Category vs Loyalty</h3>
-  </div>
-  <div class="chart-body">
-    <canvas id="firstPurchaseChart"></canvas>
-  </div>
-</div>  
-        
-  <footer class="footer">
-    <p>&copy; 2025 E-Commerce Analytics. All rights reserved.</p>
-    </footer>
+          <div class="chart-card full-width">
+            <div class="chart-header">
+              <h3>Return Analysis: Products with high return rates</h3>
+            </div>
+            <div class="chart-body">
+              <canvas id="returnAnalysisChart"></canvas>
+            </div>
+          </div>
 
-   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/script.js"></script>
+
+          <div class="chart-card full-width">
+            <div class="chart-header">
+              <h3>First Purchase Category vs Loyalty</h3>
+            </div>
+            <div class="chart-body">
+              <canvas id="firstPurchaseChart"></canvas>
+            </div>
+          </div>
+
+          <footer class="footer">
+            <p>&copy; 2025 E-Commerce Analytics. All rights reserved.</p>
+          </footer>
+
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <script src="/script.js"></script>
 
 </body>
+
 </html>
